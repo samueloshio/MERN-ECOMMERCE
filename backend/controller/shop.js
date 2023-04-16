@@ -1,16 +1,16 @@
-const express = require("express");
-const path = require("path");
+import express from "express";
+import path from "path";
+import fs from "fs";
+import jwt from "jsonwebtoken";
+import sendMail from "../utils/sendMail.js";
+import sendToken from "../utils/jwtToken.js";
+import Shop from "../model/shop.js";
+import { isAuthenticated, isSeller } from "../middleware/auth.js";
+import upload from "../multer.js";
+import catchAsyncErrors from "../middleware/catchAsyncErrors.js";
+import ErrorHandler from "../utils/ErrorHandler.js";
+import sendShopToken from "../utils/shopToken.js";
 const router = express.Router();
-const fs = require("fs");
-const jwt = require("jsonwebtoken");
-const sendMail = require("../utils/sendMail");
-const sendToken = require("../utils/jwtToken");
-const Shop = require("../model/shop");
-const { isAuthenticated, isSeller } = require("../middleware/auth");
-const { upload } = require("../multer");
-const catchAsyncErrors = require("../middleware/catchAsyncErrors");
-const ErrorHandler = require("../utils/ErrorHandler");
-const sendShopToken = require("../utils/shopToken");
 
 // create shop
 router.post("/create-shop", upload.single("file"), async (req, res, next) => {
@@ -201,4 +201,4 @@ router.get(
   })
 );
 
-module.exports = router;
+export default router;

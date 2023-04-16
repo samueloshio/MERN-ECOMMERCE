@@ -1,10 +1,11 @@
-const express = require("express");
-const catchAsyncErrors = require("../middleware/catchAsyncErrors");
-const Shop = require("../model/shop");
-const ErrorHandler = require("../utils/ErrorHandler");
-const { isSeller } = require("../middleware/auth");
-const CoupounCode = require("../model/coupounCode");
-const router = express.Router();
+import { Router } from "express";
+import catchAsyncErrors from "../middleware/catchAsyncErrors.js";
+import Shop from "../model/shop.js";
+import ErrorHandler from "../utils/ErrorHandler.js";
+import { isSeller } from "../middleware/auth.js";
+import CoupounCode from "../model/coupounCode.js"
+
+const router = Router(); 
 
 // create coupoun code
 router.post(
@@ -38,7 +39,7 @@ router.get(
   isSeller,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const couponCodes = await CoupounCode.find({ shopId: req.seller.id });
+      const couponCodes = await find({ shopId: req.seller.id });
       res.status(201).json({
         success: true,
         couponCodes,
@@ -55,7 +56,7 @@ router.delete(
   isSeller,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const couponCode = await CoupounCode.findByIdAndDelete(req.params.id);
+      const couponCode = await findByIdAndDelete(req.params.id);
 
       if (!couponCode) {
         return next(new ErrorHandler("Coupon code dosen't exists!", 400));
@@ -70,4 +71,4 @@ router.delete(
   })
 );
 
-module.exports = router;
+export default router;

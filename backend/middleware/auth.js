@@ -1,33 +1,32 @@
-const ErrorHandler = require("../utils/ErrorHandler");
-const catchAsyncErrors = require("./catchAsyncErrors");
-const jwt = require("jsonwebtoken");
-const User = require("../model/user");
-const Shop = require("../model/shop");
+import ErrorHandler from "../utils/ErrorHandler.js";
+import catchAsyncErrors from "./catchAsyncErrors.js";
+import jwt from "jsonwebtoken";
+import User from "../model/user.js";
+import Shop from "../model/shop.js";
 
-exports.isAuthenticated = catchAsyncErrors(async(req,res,next) => {
-    const {token} = req.cookies;
+export const isAuthenticated = catchAsyncErrors(async (req, res, next) => {
+  const { token } = req.cookies;
 
-    if(!token){
-        return next(new ErrorHandler("Please login to continue", 401));
-    }
+  if (!token) {
+    return next(new ErrorHandler("Please login to continue", 401));
+  }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+  const decoded = verify(token, process.env.JWT_SECRET_KEY);
 
-    req.user = await User.findById(decoded.id);
+  req.user = await findById(decoded.id);
 
-    next(); 
+  next();
 });
 
+export const isSeller = catchAsyncErrors(async (req, res, next) => {
+  const { seller_token } = req.cookies;
+  if (!seller_token) {
+    return next(new ErrorHandler("Please login to continue", 401));
+  }
 
-exports.isSeller = catchAsyncErrors(async(req,res,next) => {
-    const {seller_token} = req.cookies;
-    if(!seller_token){
-        return next(new ErrorHandler("Please login to continue", 401));
-    }
+  const decoded = verify(seller_token, process.env.JWT_SECRET_KEY);
 
-    const decoded = jwt.verify(seller_token, process.env.JWT_SECRET_KEY);
+  req.seller = await Shop.findById(decoded.id);
 
-    req.seller = await Shop.findById(decoded.id);
-
-    next();
+  next();
 });

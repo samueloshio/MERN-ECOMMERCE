@@ -1,5 +1,8 @@
-const app = require("./app");
-const connectDatabase = require("./db/Database");
+import app from "./app.js";
+import connectDatabase from "./db/Database.js";
+import dotenv from "dotenv";
+
+const { NODE_ENV, PORT } = process.env;
 
 // Handling uncaught Exception
 process.on("uncaughtException", (err) => {
@@ -8,20 +11,18 @@ process.on("uncaughtException", (err) => {
 });
 
 // config
-if (process.env.NODE_ENV !== "PRODUCTION") {
-  require("dotenv").config({
+if (NODE_ENV !== "PRODUCTION") {
+  dotenv.config({
     path: "config/.env",
   });
 }
 
 // connect db
-connectDatabase(); 
+connectDatabase();
 
 // create server
-const server = app.listen(process.env.PORT, () => {
-  console.log(
-    `Server is running on http://localhost:${process.env.PORT}`
-  );
+const server = app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
 
 // unhandled promise rejection

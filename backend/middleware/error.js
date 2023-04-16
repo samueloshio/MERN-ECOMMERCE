@@ -1,6 +1,6 @@
-const ErrorHandler = require("../utils/ErrorHandler");
+import ErrorHandler from "../utils/ErrorHandler.js";
 
-module.exports = (err, req, res, next) => {
+const error = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.message = err.message || "Internal server Error";
 
@@ -33,3 +33,5 @@ module.exports = (err, req, res, next) => {
     message: err.message,
   });
 };
+
+export default error;

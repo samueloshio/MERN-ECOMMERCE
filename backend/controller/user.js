@@ -1,17 +1,16 @@
-const express = require("express");
-const path = require("path");
-const User = require("../model/user");
+// const express = require("");
+import express from "express";
+import path from "path";
+import User from "../model/user.js";
+import upload from "../multer.js";
+import ErrorHandler from "../utils/ErrorHandler.js";
+import catchAsyncErrors from "../middleware/catchAsyncErrors.js";
+import fs from "fs";
+import jwt from "jsonwebtoken";
+import sendMail from "../utils/sendMail.js";
+import sendToken from "../utils/jwtToken.js";
+import { isAuthenticated } from "../middleware/auth.js";
 const router = express.Router();
-const { upload } = require("../multer");
-const ErrorHandler = require("../utils/ErrorHandler");
-const catchAsyncErrors = require("../middleware/catchAsyncErrors");
-const fs = require("fs");
-const jwt = require("jsonwebtoken");
-const sendMail = require("../utils/sendMail");
-const sendToken = require("../utils/jwtToken");
-const { isAuthenticated } = require("../middleware/auth");
-
-
 
 router.post("/create-user", upload.single("file"), async (req, res, next) => {
   try {
@@ -21,7 +20,7 @@ router.post("/create-user", upload.single("file"), async (req, res, next) => {
     if (userEmail) {
       const filename = req.file.filename;
       const filePath = `uploads/${filename}`;
-      fs.unlink(filePath, (err) => { 
+      fs.unlink(filePath, (err) => {
         if (err) {
           res.status(500).json({ message: "Error deleting file" });
         }
@@ -178,4 +177,4 @@ router.get(
   })
 );
 
-module.exports = router;
+export default router;

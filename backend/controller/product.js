@@ -1,12 +1,12 @@
-const express = require("express");
-const { isSeller } = require("../middleware/auth");
-const catchAsyncErrors = require("../middleware/catchAsyncErrors");
+import express from "express";
+import { isSeller } from "../middleware/auth.js";
+import catchAsyncErrors from "../middleware/catchAsyncErrors.js";
+import Product from "../model/product.js";
+import Shop from "../model/shop.js";
+import upload from "../multer.js";
+import ErrorHandler from "../utils/ErrorHandler.js";
+import fs from "fs";
 const router = express.Router();
-const Product = require("../model/product");
-const Shop = require("../model/shop");
-const { upload } = require("../multer");
-const ErrorHandler = require("../utils/ErrorHandler");
-const fs = require("fs");
 
 // create product
 router.post(
@@ -110,4 +110,4 @@ router.get(
   })
 );
 
-module.exports = router;
+export default router;

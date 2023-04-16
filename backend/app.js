@@ -1,40 +1,45 @@
-const express = require("express");
-const morgan = require("morgan");
-const ErrorHandler = require("./middleware/error");
+import express from "express";
+import cookieParser from "cookie-parser";
+import morgan from "morgan";
+import cors from "cors";
+import bodyParser from "body-parser";
+import dotenv from "dotenv";
+import ErrorHandler from "./middleware/error.js";
+
 const app = express();
-const cookieParser = require("cookie-parser");
-const bodyParser = require("body-parser");
-const cors = require("cors");
+
+const { NODE_ENV } = process.env;
 
 app.use(express.json());
 app.use(morgan("tiny"));
 app.disable("x-powered-by"); // less hackers know about our stack
 app.use(cookieParser());
 app.use(
-  cors()
-  // {
-  // origin: "http://localhost:3000",
-  // credentials: true,
-  // }
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  })
 );
 app.use("/", express.static("uploads"));
 app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
 
 // config
-if (process.env.NODE_ENV !== "PRODUCTION") {
-  require("dotenv").config({
+if (NODE_ENV !== "PRODUCTION") {
+  dotenv.config({
     path: "config/.env",
   });
 }
 
 // import routes
 // const authRouter = require("./routes/authRoutes");
-const user = require("./controller/user");
-const shop = require("./controller/shop");
-const product = require("./controller/product");
-const event = require("./controller/event");
-const coupon = require("./controller/coupounCode"); 
+import authRouter from "./routes/authRoutes.js";
+import user from "./controller/user.js";
+import shop from "./controller/shop.js";
+import product from "./controller/product.js";
+import event from "./controller/event.js";
+import coupon from "./controller/coupounCode.js";
 
+app.use("/api/v1/auth", authRouter);
 app.use("/api/v2/user", user);
 app.use("/api/v2/shop", shop);
 app.use("/api/v2/product", product);
@@ -44,4 +49,4 @@ app.use("/api/v2/coupon", coupon);
 // it's for ErrorHandling
 app.use(ErrorHandler);
 
-module.exports = app;
+export default app;
