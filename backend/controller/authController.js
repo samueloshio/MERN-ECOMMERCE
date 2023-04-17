@@ -1,37 +1,62 @@
-import ErrorHandler from "../utils/ErrorHandler.js";
 import User from "../model/user.js";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import ErrorHandler from "../utils/ErrorHandler.js";
+import hashData from "../utils/hashData.js";
 // const otpGenerator = require("otp-generator");
 // const jwt = require("jsonwebtoken");
 // const sendMail = require("../utils/sendMail");
 // const sendToken = require("../utils/jwtToken");
 
 // REGISTER CONTROLLER
-/** POST: http://localhost:8080/api/auth/join */
-export const register = async (req, res, next) => {
+/** POST: http://localhost:8000/api/v1/auth/signup */
+export const signup = async (req, res, next) => {
   try {
-    const salt = bcrypt.genSaltSync(10);
-    const hash = bcrypt.hashSync(req.body.password, salt);
-
-    const newUser = new User({
-      username: req.body.username,
-      email: req.body.email,
-      password: hash,
-      // phoneNumber: req.body.phoneNumber,
-      // city: req.body.city,
-      // address: req.body.address
-    });
-
+    let { name, email, password, profile } = req.body;
     //Check if user already exist
-    const user = await User.findOne({ email: req.body.email });
-    if (user) return next(createError(400, "User already exist"));
+    const checkUser = await User.findOne({ email });
+    if (!checkUser) {
+      name = name.trim();
+      email = email.trim();
+      password = password.trim();
 
-    // new user store into database
-    await newUser.save();
-    res.status(200).send("Registration successful!!!");
-  } catch (err) {
-    next(err);
+      if (!name && email && password) {
+        throw Error("Empty input fields");
+      } else if (!/^[a-zA-Z ]*$/.test(name)) {
+        throw Error("Invalid name Entered!");
+      } else if (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
+        throw Error("Invalid email Entered!");
+      } else if (password.length < 6) {
+        throw Error("Passwrd must be 6 character long!");
+      } else {
+        // Good credentials, create new user
+        const hashedPassword = await hashData(password);
+        const newUser = new User({
+          name,
+          email,
+          password: hashedPassword,
+          profile,
+          // phoneNumber,
+          // city,
+          // address
+        });
+
+        // new user store into database
+        const createUser = await newUser.save();
+        res
+          .status(200)
+          .send({ message: "Registration successful!!!", createUser });
+      }
+    } else {
+      return res
+        .status(404)
+        .send({ error: `Oops! User with ${email} already exist` });
+    }
+
+    // const salt = bcrypt.genSaltSync(10);
+    // const hash = bcrypt.hashSync(req.body.password, salt);
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 500));
   }
 };
 

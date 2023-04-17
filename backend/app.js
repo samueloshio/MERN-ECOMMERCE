@@ -40,11 +40,11 @@ import event from "./controller/event.js";
 import coupon from "./controller/coupounCode.js";
 
 app.use("/api/v1/auth", authRouter);
-app.use("/api/v2/user", user);
-app.use("/api/v2/shop", shop);
-app.use("/api/v2/product", product);
-app.use("/api/v2/event", event);
-app.use("/api/v2/coupon", coupon);
+app.use("/api/v1/user", user);
+app.use("/api/v1/shop", shop);
+app.use("/api/v1/product", product);
+app.use("/api/v1/event", event);
+app.use("/api/v1/coupon", coupon);
 
 // it's for ErrorHandling
 app.use(ErrorHandler);
