@@ -30,6 +30,7 @@ const userSchema = new Schema(
       type: String,
       default: "user",
     },
+    isAdmin: { type: Boolean, default: false },
     resetPasswordToken: String,
     resetPasswordTime: Date,
   },
@@ -49,7 +50,7 @@ userSchema.methods.getJwtToken = function () {
   return jwt.sign({ id: this._id }, process.env.JWT_SECRET_KEY, {
     expiresIn: process.env.JWT_EXPIRES,
   });
-}; 
+};
 
 // comapre password
 userSchema.methods.comparePassword = async function (enteredPassword) {

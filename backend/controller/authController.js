@@ -1,95 +1,114 @@
 import User from "../model/user.js";
+import { validationResult } from "express-validator";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import ErrorHandler from "../utils/ErrorHandler.js";
-import hashData from "../utils/hashData.js";
-// const otpGenerator = require("otp-generator");
-// const jwt = require("jsonwebtoken");
+import sendToken from "../utils/jwtToken.js";
+import catchAsyncErrors from "../middleware/catchAsyncErrors.js";
+
 // const sendMail = require("../utils/sendMail");
-// const sendToken = require("../utils/jwtToken");
+
+const { JWT_SECRET_KEY, JWT_EXPIRES } = process.env;
 
 // REGISTER CONTROLLER
 /** POST: http://localhost:8000/api/v1/auth/signup */
 export const signup = async (req, res, next) => {
+  let { name, email, password, profile } = req.body;
   try {
-    let { name, email, password, profile } = req.body;
     //Check if user already exist
     const checkUser = await User.findOne({ email });
     if (!checkUser) {
-      name = name.trim();
-      email = email.trim();
-      password = password.trim();
+      // name = name.trim();
+      // email = email.trim();
+      // password = password.trim();
 
-      if (!name && email && password) {
-        throw Error("Empty input fields");
-      } else if (!/^[a-zA-Z ]*$/.test(name)) {
-        throw Error("Invalid name Entered!");
-      } else if (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
-        throw Error("Invalid email Entered!");
-      } else if (password.length < 6) {
-        throw Error("Passwrd must be 6 character long!");
-      } else {
-        // Good credentials, create new user
-        const hashedPassword = await hashData(password);
-        const newUser = new User({
-          name,
-          email,
-          password: hashedPassword,
-          profile,
-          // phoneNumber,
-          // city,
-          // address
-        });
+      // if (!/^[a-zA-Z ]*$/.test(name)) {
+      //   return next(new ErrorHandler("Invalid name Entered!", 401));
+      //   // throw Error("Invalid name Entered!");
+      // } else if (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
+      //   throw Error("Invalid email Entered!");
+      // } else if (password.length < 6) {
+      //   throw Error("Passwrd must be 6 character long!");
+      // } else {
+      //   // Good credentials, create new user
+      //   // const hashedPassword = await hashData(password);
+      //   // const salt = bcrypt.genSaltSync(10);
+      //   // const hashed = bcrypt.hashSync(password, salt);
 
-        // new user store into database
-        const createUser = await newUser.save();
-        res
-          .status(200)
-          .send({ message: "Registration successful!!!", createUser });
-      }
+      // }
+      const newUser = new User({
+        name,
+        email,
+        password,
+        profile,
+        // phoneNumber,
+        // city,
+        // address
+      });
+
+      // new user store into database
+      const user = await newUser.save();
+      sendToken(user, 201, res);
     } else {
       return res
-        .status(404)
+        .status(401)
         .send({ error: `Oops! User with ${email} already exist` });
     }
-
-    // const salt = bcrypt.genSaltSync(10);
-    // const hash = bcrypt.hashSync(req.body.password, salt);
   } catch (error) {
     return next(new ErrorHandler(error.message, 500));
   }
 };
 
 // LOGIN USER
+/** POST: http://localhost:8000/api/v1/auth/login */
+export const login = catchAsyncErrors(async (req, res, next) => {
+  const errors = validationResult(req);
+  if (errors.isEmpty()) {
+    try {
+      // if (!req.body.email || !req.body.password) {
+      //   return next(new ErrorHandler("Invalid Email or Password!", 401));
+      // }
 
-export const login = async (req, res, next) => {
-  try {
-    // check if user exist
-    const user = await User.findOne({ email: req.body.email });
-    if (!user) return next(createError(404, "User does not exist"));
+      const user = await User.findOne({ email: req.body.email }).select(
+        "+password"
+      );
 
-    // check password authentication
-    const isPasswordCorrect = await bcrypt.compare(
-      req.body.password,
-      user.password
-    );
-    if (!isPasswordCorrect)
-      return next(createError(400, "invalid username or password"));
+      if (!user) {
+        return next(new ErrorHandler("User doesn't exists!", 400));
+      }
 
-    const token = jwt.sign(
-      { id: user._id, isSuperUser: user.isSuperUser },
-      process.env.JWT
-    );
+      const isPasswordValid = await user.comparePassword(req.body.password);
 
-    // distructure the user details to hide password and admin info
-    const { password, isSuperUser, ...otherDetails } = user._doc;
-    res
-      .cookie("access_token", token, {
+      if (!isPasswordValid) {
+        return next(
+          new ErrorHandler("Please provide the correct password", 401)
+        );
+      }
+
+      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET_KEY, {
+        expiresIn: process.env.JWT_EXPIRES,
+      });
+
+      // Options for cookies
+      const options = {
+        expires: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
         httpOnly: true,
-      })
-      .status(200)
-      .json({ ...otherDetails });
-  } catch (err) {
-    next(err);
+        Secure: true,
+      };
+
+      // distructure the user details to hide password info
+      const { password, isAdmin, ...userInfo } = user._doc;
+      return res
+        .status(201)
+        .cookie("token", token, options)
+        .json({ success: true, userInfo, token });
+
+      // sendToken(user, 201, res);
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  } else {
+    return next(new ErrorHandler("Invalid email or password", 401));
+    // return res.status(401).json({ errors: errors.array() });
   }
-};
+});

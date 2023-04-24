@@ -1,4 +1,3 @@
-// const express = require("");
 import express from "express";
 import path from "path";
 import User from "../model/user.js";
@@ -97,6 +96,19 @@ router.post(
       });
 
       sendToken(user, 201, res);
+    } catch (error) {
+      console.log(error);
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// OTP GEN
+router.post(
+  "/otp-gen",
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const {email, subject, message, duration} = req.body
     } catch (error) {
       console.log(error);
       return next(new ErrorHandler(error.message, 500));

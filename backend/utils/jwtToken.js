@@ -14,6 +14,6 @@ const sendToken = (user, statusCode, res) => {
     user,
     token,
   });
-};
+}; 
 
 export default sendToken;
