@@ -34,6 +34,7 @@ if (NODE_ENV !== "PRODUCTION") {
 // const authRouter = require("./routes/authRoutes");
 import authRouter from "./routes/authRoutes.js";
 import otpRouter from "./routes/otpRoutes.js";
+import verifyOTPRouter from "./routes/otpRoutes.js";
 import user from "./controller/user.js";
 import shop from "./controller/shop.js";
 import product from "./controller/product.js";
@@ -42,6 +43,7 @@ import coupon from "./controller/coupounCode.js";
 
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1", otpRouter);
+app.use("/api/v1/otp", verifyOTPRouter);
 app.use("/api/v1/user", user);
 app.use("/api/v1/shop", shop);
 app.use("/api/v1/product", product);
