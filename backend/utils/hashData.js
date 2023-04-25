@@ -11,7 +11,7 @@ export const hashData = async (data, saltRounds = 10) => {
 
 export const verifyHashData = async (unhashed, hashed) => {
   try {
-    const match = await bcrypt.compareSync(unhashed, hashed);
+    const match = bcrypt.compareSync(unhashed, hashed);
     return match;
   } catch (error) {
     throw error;

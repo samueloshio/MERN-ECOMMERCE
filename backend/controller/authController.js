@@ -44,7 +44,7 @@ export const signup = async (req, res, next) => {
         // phoneNumber,
         // city,
         // address
-      });
+      }); 
 
       // new user store into database
       const user = await newUser.save();
