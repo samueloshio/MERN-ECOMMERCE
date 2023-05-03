@@ -1,14 +1,10 @@
 import User from "../model/user.js";
 import { validationResult } from "express-validator";
-import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import ErrorHandler from "../utils/ErrorHandler.js";
 import sendToken from "../utils/jwtToken.js";
 import catchAsyncErrors from "../middleware/catchAsyncErrors.js";
-
-// const sendMail = require("../utils/sendMail");
-
-const { JWT_SECRET_KEY, JWT_EXPIRES } = process.env;
+import { sendOTP } from "./otp.js";
 
 // REGISTER CONTROLLER
 /** POST: http://localhost:8000/api/v1/auth/signup */
@@ -44,7 +40,7 @@ export const signup = async (req, res, next) => {
         // phoneNumber,
         // city,
         // address
-      }); 
+      });
 
       // new user store into database
       const user = await newUser.save();
@@ -58,6 +54,39 @@ export const signup = async (req, res, next) => {
     return next(new ErrorHandler(error.message, 500));
   }
 };
+
+// Send Email Verification OTP
+export const sendEmailVerificationOTP = catchAsyncErrors(async (req, res) => {
+  const { email } = req.body;
+  try {
+    if (!email) {
+      return res.status(401).send("Email is requred!");
+    }
+
+    // Check if user exist
+    const existUser = await User.findOne({ email });
+    if (!existUser) {
+      return res
+        .status(401)
+        .send("There is no account for the provided email.");
+    }
+
+    const otpDetails = {
+      email,
+      subject: "👋 Email Verification Required ",
+      message: "Kindly verify your email with the code below",
+      duration: 1,
+    };
+
+    sendOTP(otpDetails);
+    return res.status(201).json({
+      success: true,
+      message: `An OTP has been sent to ${email}`,
+    });
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 500));
+  }
+});
 
 // LOGIN USER
 /** POST: http://localhost:8000/api/v1/auth/login */
